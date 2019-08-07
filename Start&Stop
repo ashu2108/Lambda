@@ -1,0 +1,66 @@
+from __future__ import print_function
+import json
+import boto3
+import time
+import sys
+region = 'ap-southeast-1'
+from botocore.exceptions import ClientError
+ec2_client = boto3.client('ec2',region_name=region)
+def lambda_handler(event, context):
+    instance_id = event['instance_id']
+    action = event['action']
+
+   
+    
+    if action == 'ON':
+
+    # Do a dryrun first to verify permissions
+
+        try:
+
+            ec2_client.start_instances(InstanceIds=[instance_id], DryRun=True)
+
+        except ClientError as e:
+
+            if 'DryRunOperation' not in str(e):
+
+                raise
+        try:
+
+            response = ec2_client.start_instances(InstanceIds=[instance_id], DryRun=False)
+
+            print(response)
+
+        except ClientError as e:
+
+            print(e)
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Instance Started')
+            
+            }
+
+    elif action == 'OFF':
+
+        try:
+
+            ec2_client.stop_instances(InstanceIds=[instance_id], DryRun=True)
+
+        except ClientError as e:
+
+            if 'DryRunOperation' not in str(e):
+
+                raise
+        try:
+
+            response = ec2_client.stop_instances(InstanceIds=[instance_id], DryRun=False)
+
+            print(response)
+
+        except ClientError as e:
+
+            print(e)
+        
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Instance Stopped')}
